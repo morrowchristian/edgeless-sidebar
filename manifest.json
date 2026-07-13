@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Edgeless Sidebar",
+  "version": "0.1.0",
+  "description": "An un-copiloted app tower workspace layout. Built because you decided to go Edge-less.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Toggle Edgeless Sidebar"
+  }
+}
