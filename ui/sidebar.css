@@ -77,3 +77,53 @@
 .edgeless-pin-btn:hover {
     background-color: #34a853;
 }
+
+/* Split layout container on the right side of the tower */
+.edgeless-main-panel {
+    width: calc(100%-60px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #1a1a1e;
+    box-sizing: border-box;
+}
+
+/* The locked top container that holds widgets like your notepad */
+.edgeless-widget-deck {
+    width: 100%;
+    height: 150px;
+    background-color: #202124;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #2d2d34;
+    box-sizing: border-box;
+}
+
+/* Temporary scratchpad styling for testing the locked widget layer */
+.edgeless-scratchpad {
+    width: 100%;
+    height: 100%;
+    background: #111113;
+    border: 1px solid #3c4043;
+    border-radius: 6px;
+    color: #e8eaed;
+    padding: 8px;
+    resize: none;
+    box-sizing: border-box;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.edgeless-scratchpad:focus {
+    outline: 1px solid #34a853;
+}
+
+/* The scrollable frame area for your web apps */
+.edgeless-viewport-container {
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+    height: calc(100% - 150px);
+}

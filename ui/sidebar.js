@@ -60,9 +60,44 @@
   const tower = document.createElement('div');
   tower.className = 'edgeless-app-tower';
 
+  // Create the main panel workspace to the right of the icon tower
+  const mainPanel = document.createElement('div');
+  mainPanel.className = 'edgeless-main-panel';
+
+  // Build the Top-Locked Widget Deck
+  const widgetDeck = document.createElement('div');
+  widgetDeck.className = 'edgeless-widget-deck';
+  
+  // Inject a live local scratchpad widget into the deck
+  const scratchpad = document.createElement('textarea');
+  scratchpad.className = 'edgeless-scratchpad';
+  scratchpad.placeholder = 'Edgeless Quick Notes... (Locked)';
+  chrome.storage.local.get(['edgelessNotes'], (result) => {
+    if (result.edgelessNotes) {
+      scratchpad.value = result.edgelessNotes;
+    }
+  })
+  
+  scratchpad.oninput = () => {
+    chrome.storage.local.set({ edgelessNotes: scratchpad.value});
+  };
+  
+  widgetDeck.appendChild(scratchpad);
+
+  // Build the Web App Viewport Container
+  const viewportContainer = document.createElement('div');
+  viewportContainer.className = 'edgeless-viewport-container';
+
   const view = document.createElement('iframe');
   view.className = 'edgeless-viewport';
+  view.style.width = '100%';
+  view.style.height = '100%';
   view.src = 'https://notion.so';
+  viewportContainer.appendChild(view);
+
+  // Assemble the multi-tier panel hierarchy
+  mainPanel.appendChild(widgetDeck);
+  mainPanel.appendChild(viewportContainer);
 
   const pinBtn = document.createElement('button');
   pinBtn.className = 'edgeless-pin-btn';
@@ -85,22 +120,24 @@
     img.src = iconUrl;
 
     iconWrapper.appendChild(img);
-    iconWrapper.onclick = () => { view.src = targetUrl; };
+    iconWrapper.onclick = () => { 
+      view.src = targetUrl; 
+    };
     tower.insertBefore(iconWrapper, pinBtn);
   }
 
-  // Align internal elements based on settings
+  // Align internal structural groups based on side settings
   tower.style.order = config.alignment === 'right' ? '0' : '0';
-  view.style.order = config.alignment === 'right' ? '1' : '-1';
+  mainPanel.style.order = config.alignment === 'right' ? '1' : '-1';
 
   // 6. Build the structural tree and mount it to the main page body
   tower.appendChild(pinBtn);
   root.appendChild(tower);
-  root.appendChild(view);
+  root.appendChild(mainPanel);
   shadowRoot.appendChild(root);
   document.body.appendChild(host);
 
   // Load sample starter setups
   createAppIcon('https://google.com', 'https://notion.so', 'Notion');
-  createAppIcon('https://google.com', 'https://whatsapp.com', 'WhatsApp');
+  createAppIcon('https://google.com', 'https://youtube.com', 'YouTube');
 })();
