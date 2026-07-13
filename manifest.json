@@ -9,6 +9,12 @@
     "storage",
     "tabs"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["ui/sidebar.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "background": {
     "service_worker": "background.js"
   },
