@@ -1,52 +1,52 @@
 {
   "manifest_version": 3,
   "name": "Edgeless Sidebar",
-  "version": "0.5.0",
-  "description": "An un-copiloted app tower workspace layout. Built because you decided to go Edge-less.",
+  "version": "0.7.0",
+  "description": "A permanent browser sidebar with app tower, notes, and calculator",
   "author": "morrowchristian",
   
   "permissions": [
-    "activeTab",
-    "scripting",
     "storage",
-    "tabs",
-    "declarativeNetRequest"
+    "sidePanel",
+    "activeTab"
   ],
   
   "host_permissions": [
     "<all_urls>"
   ],
   
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "ui/panel.html",
-        "ui/sidebar.css",
-        "ui/panel.js"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ],
+  "side_panel": {
+    "default_path": "ui/panel.html"
+  },
   
   "background": {
     "service_worker": "background.js"
   },
   
   "action": {
-    "default_title": "Toggle Edgeless Sidebar"
-  },
-  
-  "commands": {
-    "toggle-alignment": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+E",
-        "mac": "Command+Shift+E"
-      },
-      "description": "Flip Edgeless Sidebar between Left and Right sides"
+    "default_title": "Toggle Edgeless Sidebar",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
   },
   
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+  "commands": {
+    "toggle-sidebar": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Toggle Edgeless Sidebar"
+    }
+  },
+  
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
   }
 }

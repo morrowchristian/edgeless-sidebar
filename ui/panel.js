@@ -1,7 +1,10 @@
-// ui/panel.js
+// ui/panel.js - With URL Bar Support
 
-document.addEventListener('DOMContentLoaded', () => {
-  // DOM References
+document.addEventListener('DOMContentLoaded', function() {
+  // ============================================
+  // DOM REFERENCES
+  // ============================================
+  
   const tower = document.getElementById('appTower');
   const pinBtn = document.getElementById('pinBtn');
   const view = document.getElementById('viewport');
@@ -9,25 +12,87 @@ document.addEventListener('DOMContentLoaded', () => {
   const widgetTabs = document.querySelectorAll('.widget-tab');
   const calculator = document.getElementById('calculator');
   const calcDisplay = document.getElementById('calcDisplay');
-
+  
+  // URL Bar elements
+  const urlBar = document.getElementById('urlBar');
+  const goBtn = document.getElementById('goBtn');
+  const backBtn = document.getElementById('backBtn');
+  const reloadBtn = document.getElementById('reloadBtn');
+  
   // ============================================
-  // 1. PERSISTENT NOTES LOGIC
+  // URL BAR FUNCTIONALITY
+  // ============================================
+  
+  function loadUrl(url) {
+    if (!url) return;
+    
+    // Clean up the URL
+    url = url.trim();
+    
+    // If no protocol, add https://
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    
+    console.log('🌐 Loading URL:', url);
+    view.src = url;
+    urlBar.value = url;
+    
+    // Save to storage
+    chrome.storage.local.set({ viewportUrl: url });
+    chrome.runtime.sendMessage({
+      action: "viewport-url-changed",
+      url: url
+    });
+  }
+  
+  // Go button
+  goBtn.addEventListener('click', function() {
+    loadUrl(urlBar.value);
+  });
+  
+  // Enter key in URL bar
+  urlBar.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      loadUrl(urlBar.value);
+    }
+  });
+  
+  // Back button
+  backBtn.addEventListener('click', function() {
+    try {
+      // Try to go back in iframe history
+      view.contentWindow.history.back();
+    } catch (e) {
+      // If cross-origin, reload the current URL
+      console.log('Cannot navigate back in iframe, reloading');
+      view.src = view.src;
+    }
+  });
+  
+  // Reload button
+  reloadBtn.addEventListener('click', function() {
+    view.src = view.src;
+  });
+  
+  // ============================================
+  // PERSISTENT NOTES LOGIC
   // ============================================
   
   // Load saved notes
-  chrome.storage.local.get(['edgelessNotes'], (result) => {
+  chrome.storage.local.get(['edgelessNotes'], function(result) {
     if (result.edgelessNotes) {
       scratchpad.value = result.edgelessNotes;
     }
   });
 
   // Auto-save notes on every keystroke
-  scratchpad.oninput = () => {
+  scratchpad.oninput = function() {
     chrome.storage.local.set({ edgelessNotes: scratchpad.value });
   };
 
   // ============================================
-  // 2. APP ICON MANAGEMENT
+  // APP ICON MANAGEMENT
   // ============================================
   
   function createAppIcon(targetUrl, title) {
@@ -60,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fallback to text avatar if favicon fails
-    img.onerror = () => {
+    img.onerror = function() {
       img.remove();
       const textLetter = document.createElement('span');
       textLetter.innerText = domainLetter;
@@ -70,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
     iconWrapper.appendChild(img);
     
     // Click to load in viewport
-    iconWrapper.onclick = () => { 
-      if (view) view.src = targetUrl; 
+    iconWrapper.onclick = function() { 
+      loadUrl(targetUrl);
     };
     
     // Add delete button
@@ -80,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Insert before pin button
     tower.insertBefore(iconWrapper, pinBtn);
     
-    // Save to storage
     savePinnedApps();
   }
 
@@ -90,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteBtn.className = 'delete-btn';
     deleteBtn.textContent = '×';
     deleteBtn.setAttribute('aria-label', 'Remove pinned app');
-    deleteBtn.onclick = (e) => {
+    deleteBtn.onclick = function(e) {
       e.stopPropagation();
       iconWrapper.remove();
       savePinnedApps();
@@ -102,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function savePinnedApps() {
     const icons = tower.querySelectorAll('.edgeless-app-icon');
     const apps = [];
-    icons.forEach(icon => {
+    icons.forEach(function(icon) {
       const url = icon.dataset.url;
       if (url) {
         apps.push({ 
@@ -116,12 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load pinned apps from chrome.storage
   function loadPinnedApps() {
-    chrome.storage.local.get(['edgelessPinnedApps'], (result) => {
+    chrome.storage.local.get(['edgelessPinnedApps'], function(result) {
       if (result.edgelessPinnedApps && Array.isArray(result.edgelessPinnedApps)) {
-        result.edgelessPinnedApps.forEach(app => {
+        result.edgelessPinnedApps.forEach(function(app) {
           // Check if already exists to prevent duplicates
           const exists = Array.from(tower.querySelectorAll('.edgeless-app-icon'))
-            .some(icon => icon.dataset.url === app.url);
+            .some(function(icon) { return icon.dataset.url === app.url; });
           if (!exists) {
             createAppIcon(app.url, app.title);
           }
@@ -133,23 +197,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Clear all pinned apps
   function clearAllApps() {
     const icons = tower.querySelectorAll('.edgeless-app-icon');
-    icons.forEach(icon => {
+    icons.forEach(function(icon) {
       icon.remove();
     });
     savePinnedApps();
   }
 
   // ============================================
-  // 3. PIN BUTTON ACTION
+  // PIN BUTTON ACTION
   // ============================================
   
-  pinBtn.onclick = async () => {
-    chrome.runtime.sendMessage({ action: "get-active-tab" }, (response) => {
+  pinBtn.onclick = function() {
+    chrome.runtime.sendMessage({ action: "get-active-tab" }, function(response) {
       if (response && response.url) {
         // Check if already pinned
         const existingIcons = tower.querySelectorAll('.edgeless-app-icon');
         let alreadyPinned = false;
-        existingIcons.forEach(icon => {
+        existingIcons.forEach(function(icon) {
           if (icon.dataset.url === response.url) {
             alreadyPinned = true;
           }
@@ -163,33 +227,32 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ============================================
-  // 4. CLEAR ALL BUTTON
+  // CLEAR ALL BUTTON
   // ============================================
   
   function addClearButton() {
     const clearBtn = document.createElement('button');
-    clearBtn.className = 'edgeless-pin-btn';
+    clearBtn.className = 'edgeless-pin-btn clear-all';
     clearBtn.textContent = '✕';
-    clearBtn.style.backgroundColor = '#dc3545';
     clearBtn.title = 'Clear All Pinned Apps';
     clearBtn.onclick = clearAllApps;
     tower.appendChild(clearBtn);
   }
 
   // ============================================
-  // 5. WIDGET TRAY MANAGEMENT
+  // WIDGET TRAY MANAGEMENT
   // ============================================
   
   // Widget tab switching
-  widgetTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
+  widgetTabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
       // Update active tab
-      widgetTabs.forEach(t => t.classList.remove('active'));
+      widgetTabs.forEach(function(t) { t.classList.remove('active'); });
       tab.classList.add('active');
       
       // Show/hide widgets
       const widgetType = tab.dataset.widget;
-      document.querySelectorAll('.widget-content > *').forEach(content => {
+      document.querySelectorAll('.widget-content > *').forEach(function(content) {
         content.style.display = 'none';
       });
       
@@ -202,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ============================================
-  // 6. CALCULATOR LOGIC
+  // CALCULATOR LOGIC
   // ============================================
   
   let calcExpression = '';
@@ -211,8 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
     calcDisplay.value = calcExpression || '0';
   }
 
-  document.querySelectorAll('.calc-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll('.calc-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
       const value = btn.dataset.value;
       
       if (value === '=') {
@@ -237,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Keyboard support for calculator
-  calcDisplay.addEventListener('keydown', (e) => {
+  calcDisplay.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       try {
         calcExpression = eval(calcExpression).toString();
@@ -250,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ============================================
-  // 7. CONTEXT AWARENESS
+  // CONTEXT AWARENESS
   // ============================================
   
   function updateContextView(url, title) {
@@ -281,8 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
         targetUrl = 'https://docs.google.com';
       }
       
-      if (targetUrl && view) {
-        view.src = targetUrl;
+      if (targetUrl) {
+        loadUrl(targetUrl);
       }
     } catch(e) {
       // Invalid URL, ignore
@@ -290,30 +353,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Listen for context updates from background
-  chrome.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener(function(message) {
     if (message.action === "active-tab-changed") {
       updateContextView(message.url, message.title);
     }
   });
 
   // Load initial context
-  chrome.storage.local.get(['activeTabUrl', 'activeTabTitle'], (result) => {
+  chrome.storage.local.get(['activeTabUrl', 'activeTabTitle'], function(result) {
     if (result.activeTabUrl) {
       updateContextView(result.activeTabUrl, result.activeTabTitle);
     }
   });
 
   // ============================================
-  // 8. INITIALIZATION
+  // LOAD SAVED VIEWPORT URL
+  // ============================================
+  
+  chrome.storage.local.get(['viewportUrl'], function(result) {
+    if (result.viewportUrl) {
+      view.src = result.viewportUrl;
+      urlBar.value = result.viewportUrl;
+    }
+  });
+
+  // ============================================
+  // INITIALIZATION
   // ============================================
   
   // Load default apps
   const defaultApps = [
-    { url: 'https://notion.so', title: 'Notion' },
-    { url: 'https://youtube.com', title: 'YouTube' }
+    { url: 'https://google.com', title: 'Google' },
+    { url: 'https://github.com', title: 'GitHub' }
   ];
   
-  defaultApps.forEach(app => {
+  defaultApps.forEach(function(app) {
     createAppIcon(app.url, app.title);
   });
   
@@ -326,19 +400,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show notes widget by default
   scratchpad.style.display = 'block';
   calculator.style.display = 'none';
-
-  // ============================================
-  // 9. GLOBAL STATE SYNC - KEEP DATA ACROSS TABS
-  // ============================================
-
-  // Listen for tab changes and keep sidebar state consistent
-  chrome.tabs.onActivated.addListener(function(activeInfo) {
-    // The sidebar itself stays open, but we might want to update content
-    chrome.storage.local.get(['edgelessNotes', 'edgelessPinnedApps'], function(result) {
-      // Update notes if needed
-      if (result.edgelessNotes) {
-        scratchpad.value = result.edgelessNotes;
-      }
-    });
-  });
+  
+  console.log('✅ Edgeless Sidebar Panel ready');
 });

@@ -1,4 +1,4 @@
-/* ui/sidebar.css */
+/* ui/sidebar.css - Global sidebar styles */
 
 /* Master structural block pinned over the browser page viewport */
 #edgeless-root {
@@ -6,44 +6,48 @@
     top: 0;
     height: 100vh;
     background-color: #1a1a1e;
-    z-index: 2147483647; /* Enforces absolute top layer priority */
+    z-index: 2147483647;
     display: flex;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* The vertical App Tower navigation strip on the side */
-.edgeless-app-tower {
-    width: 60px;
-    min-width: 60px;
-    background-color: #111113;
+/* Container for the entire side panel */
+.edgeless-main-panel {
+    width: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #1a1a1e;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* App tower - HORIZONTAL layout (changed from vertical) */
+.edgeless-app-tower {
+    display: flex;
+    flex-direction: row; /* Changed from column */
+    background-color: #111113;
+    padding: 8px 12px;
+    gap: 10px;
     align-items: center;
-    padding-top: 20px;
-    gap: 15px;
-    height: 100vh;
-    overflow-y: auto;
+    border-bottom: 1px solid #2d2d34;
+    min-height: 50px;
+    height: 50px; /* Fixed height */
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
     position: relative;
 }
 
-/* The core iframe screen containing the websites */
-.edgeless-viewport {
-    flex-grow: 1;
-    height: 100%;
-    border: none;
-    background-color: #ffffff;
-    width: 100%;
-}
-
-/* Dynamic application icon wrappers */
+/* App icons - slightly smaller for horizontal layout */
 .edgeless-app-icon {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 6px;
     cursor: pointer;
     background-color: #25262b;
     display: flex;
@@ -53,6 +57,7 @@
     position: relative;
     border: none;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .edgeless-app-icon:hover {
@@ -77,6 +82,7 @@
     cursor: pointer;
     display: none;
     padding: 0;
+    z-index: 10;
 }
 
 .edgeless-app-icon:hover .delete-btn {
@@ -90,36 +96,35 @@
 /* Fallback text icon styling */
 .edgeless-app-icon span {
     color: #e8eaed;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     font-family: -apple-system, sans-serif;
 }
 
-/* Image element inside the wrapper to prevent sizing spills */
+/* Image element inside the wrapper */
 .edgeless-app-img {
-    width: 20px;
-    height: 20px;
-    pointer-events: none; /* Passes clicks directly to the parent wrapper button */
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
 }
 
-/* The signature green automated pinning button (+) */
+/* Pin button - smaller for horizontal layout */
 .edgeless-pin-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 6px;
     border: none;
     background-color: #2b8a43;
     color: #ffffff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.15s ease;
-    margin-top: auto; /* Forces the pin button to ride cleanly at the bottom of the tower */
-    margin-bottom: 20px;
     flex-shrink: 0;
 }
 
@@ -127,31 +132,38 @@
     background-color: #34a853;
 }
 
-/* Split layout container on the right side of the tower */
-.edgeless-main-panel {
-    width: calc(100% - 60px);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #1a1a1e;
-    box-sizing: border-box;
-    overflow: hidden;
+.edgeless-pin-btn.clear-all {
+    background-color: #dc3545;
 }
 
-/* The locked top container that holds widgets like your notepad */
+.edgeless-pin-btn.clear-all:hover {
+    background-color: #c82333;
+}
+
+/* The core iframe screen containing the websites */
+.edgeless-viewport {
+    flex-grow: 1;
+    height: 100%;
+    border: none;
+    background-color: #ffffff;
+    width: 100%;
+}
+
+/* Widget deck - slightly taller */
 .edgeless-widget-deck {
     width: 100%;
-    height: 150px;
-    min-height: 150px;
+    height: 180px;
+    min-height: 180px;
     background-color: #202124;
     padding: 10px;
     display: flex;
     flex-direction: column;
     border-bottom: 1px solid #2d2d34;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
-/* Temporary scratchpad styling for testing the locked widget layer */
+/* Scratchpad styling */
 .edgeless-scratchpad {
     width: 100%;
     height: 100%;
@@ -163,19 +175,99 @@
     resize: none;
     box-sizing: border-box;
     font-size: 13px;
+    font-family: inherit;
     white-space: pre-wrap;
     word-break: break-all;
+    line-height: 1.5;
 }
 
 .edgeless-scratchpad:focus {
     outline: 1px solid #34a853;
 }
 
-/* The scrollable frame area for your web apps */
+.edgeless-scratchpad::placeholder {
+    color: #5a5f66;
+}
+
+/* Viewport container - fills remaining space */
 .edgeless-viewport-container {
     flex-grow: 1;
     position: relative;
     width: 100%;
-    height: calc(100% - 150px);
     background: #ffffff;
+    overflow: hidden;
+}
+
+/* Scrollbar styling for horizontal app tower */
+.edgeless-app-tower::-webkit-scrollbar {
+    height: 3px;
+}
+
+.edgeless-app-tower::-webkit-scrollbar-track {
+    background: #111113;
+}
+
+.edgeless-app-tower::-webkit-scrollbar-thumb {
+    background: #3c4043;
+    border-radius: 3px;
+}
+
+.edgeless-app-tower::-webkit-scrollbar-thumb:hover {
+    background: #4a4d52;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .edgeless-app-icon {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
+    }
+    
+    .edgeless-pin-btn {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 14px;
+    }
+    
+    .edgeless-app-tower {
+        min-height: 42px;
+        height: 42px;
+        padding: 6px 10px;
+        gap: 8px;
+    }
+    
+    .edgeless-widget-deck {
+        height: 150px;
+        min-height: 150px;
+    }
+}
+
+@media (max-width: 360px) {
+    .edgeless-app-icon {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
+    }
+    
+    .edgeless-app-icon span {
+        font-size: 10px;
+    }
+    
+    .edgeless-pin-btn {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        font-size: 12px;
+    }
+    
+    .edgeless-app-tower {
+        min-height: 36px;
+        height: 36px;
+        padding: 4px 8px;
+        gap: 6px;
+    }
 }

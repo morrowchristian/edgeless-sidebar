@@ -5,248 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edgeless Sidebar Panels</title>
   <link rel="stylesheet" href="sidebar.css">
-  <style>
-    /* Panel-specific styles that complement sidebar.css */
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-      background-color: #1a1a1e;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    /* Widget tabs styling */
-    .widget-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      flex-shrink: 0;
-    }
-
-    .widget-tab {
-      background: transparent;
-      border: 1px solid #3c4043;
-      border-radius: 6px;
-      color: #9aa0a6;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    .widget-tab:hover {
-      background: #2c2e33;
-      color: #e8eaed;
-    }
-
-    .widget-tab.active {
-      background: #2b8a43;
-      border-color: #2b8a43;
-      color: #ffffff;
-    }
-
-    .widget-content {
-      flex: 1;
-      min-height: 0;
-      position: relative;
-    }
-
-    .widget-content > * {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    /* Calculator styles */
-    .edgeless-calculator {
-      background: #111113;
-      border: 1px solid #3c4043;
-      border-radius: 6px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      box-sizing: border-box;
-    }
-
-    #calcDisplay {
-      width: 100%;
-      height: 40px;
-      background: #1a1a1e;
-      border: 1px solid #3c4043;
-      border-radius: 4px;
-      color: #e8eaed;
-      font-size: 20px;
-      text-align: right;
-      padding: 0 10px;
-      box-sizing: border-box;
-      font-family: 'Courier New', monospace;
-    }
-
-    #calcDisplay:focus {
-      outline: 1px solid #2b8a43;
-    }
-
-    .calc-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      flex: 1;
-    }
-
-    .calc-btn {
-      background: #25262b;
-      border: none;
-      border-radius: 4px;
-      color: #e8eaed;
-      font-size: 16px;
-      padding: 8px;
-      cursor: pointer;
-      transition: background-color 0.15s ease;
-      font-family: inherit;
-    }
-
-    .calc-btn:hover {
-      background: #2c2e33;
-    }
-
-    .calc-btn:active {
-      transform: scale(0.95);
-    }
-
-    .calc-btn.operator {
-      background: #2b8a43;
-      color: #ffffff;
-    }
-
-    .calc-btn.operator:hover {
-      background: #34a853;
-    }
-
-    .calc-btn.equals {
-      background: #1a73e8;
-      color: #ffffff;
-    }
-
-    .calc-btn.equals:hover {
-      background: #4285f4;
-    }
-
-    .calc-btn.clear {
-      background: #dc3545;
-      color: #ffffff;
-    }
-
-    .calc-btn.clear:hover {
-      background: #c82333;
-    }
-
-    .calc-btn.span-two {
-      grid-column: span 2;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 480px) {
-      .widget-tab {
-        font-size: 10px;
-        padding: 4px 8px;
-      }
-      
-      .calc-btn {
-        font-size: 14px;
-        padding: 6px;
-      }
-      
-      #calcDisplay {
-        font-size: 16px;
-        height: 32px;
-      }
-    }
-
-    /* Animations for widget switching */
-    .widget-content > * {
-      transition: opacity 0.2s ease;
-    }
-
-    .widget-content > *[style*="display: none"] {
-      opacity: 0;
-    }
-
-    .widget-content > *[style*="display: block"] {
-      opacity: 1;
-    }
-
-    /* Delete button positioning */
-    .edgeless-app-icon {
-      position: relative;
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #dc3545;
-      color: white;
-      border: none;
-      font-size: 10px;
-      line-height: 16px;
-      text-align: center;
-      cursor: pointer;
-      display: none;
-      padding: 0;
-      z-index: 10;
-      font-family: inherit;
-    }
-
-    .edgeless-app-icon:hover .delete-btn {
-      display: block;
-    }
-
-    .delete-btn:hover {
-      background: #c82333;
-    }
-
-    /* Scrollbar styling for tower */
-    .edgeless-app-tower::-webkit-scrollbar {
-      width: 3px;
-    }
-
-    .edgeless-app-tower::-webkit-scrollbar-track {
-      background: #111113;
-    }
-
-    .edgeless-app-tower::-webkit-scrollbar-thumb {
-      background: #3c4043;
-      border-radius: 3px;
-    }
-
-    .edgeless-app-tower::-webkit-scrollbar-thumb:hover {
-      background: #4a4d52;
-    }
-  </style>
+  <link rel="stylesheet" href="panel.css">
 </head>
 <body>
   
-  <!-- Left App Tower Strip -->
-  <div class="edgeless-app-tower" id="appTower">
-    <button class="edgeless-pin-btn" id="pinBtn" title="Pin Active Tab to Edgeless">＋</button>
-  </div>
-
-  <!-- Main Workspace Column -->
+  <!-- Main Panel -->
   <div class="edgeless-main-panel">
     
-    <!-- Top Widget Deck -->
+    <!-- Top App Tower (Horizontal) -->
+    <div class="edgeless-app-tower" id="appTower">
+      <button class="edgeless-pin-btn" id="pinBtn" title="Pin Active Tab">＋</button>
+    </div>
+    
+    <!-- URL Bar -->
+    <div class="edgeless-url-bar">
+      <button class="back-btn" id="backBtn" title="Go Back">◀</button>
+      <button class="reload-btn" id="reloadBtn" title="Reload">⟳</button>
+      <input 
+        type="text" 
+        id="urlBar" 
+        placeholder="Enter URL (e.g., google.com)" 
+        spellcheck="false"
+        autocomplete="off"
+      >
+      <button id="goBtn">Go</button>
+    </div>
+    
+    <!-- Widget Deck -->
     <div class="edgeless-widget-deck">
-      <!-- Widget Navigation Tabs -->
       <div class="widget-tabs">
         <button class="widget-tab active" data-widget="notes" title="Quick Notes">
           📝 Notes
@@ -256,7 +42,6 @@
         </button>
       </div>
       
-      <!-- Widget Content Area -->
       <div class="widget-content">
         <!-- Notes Widget -->
         <textarea 
@@ -277,48 +62,43 @@
             value="0"
           >
           <div class="calc-grid">
-            <!-- Row 1 -->
-            <button class="calc-btn clear" data-value="C" aria-label="Clear">C</button>
-            <button class="calc-btn" data-value="(" aria-label="Left parenthesis">(</button>
-            <button class="calc-btn" data-value=")" aria-label="Right parenthesis">)</button>
-            <button class="calc-btn operator" data-value="÷" aria-label="Divide">÷</button>
+            <button class="calc-btn clear" data-value="C">C</button>
+            <button class="calc-btn" data-value="(">(</button>
+            <button class="calc-btn" data-value=")">)</button>
+            <button class="calc-btn operator" data-value="÷">÷</button>
             
-            <!-- Row 2 -->
-            <button class="calc-btn" data-value="7" aria-label="7">7</button>
-            <button class="calc-btn" data-value="8" aria-label="8">8</button>
-            <button class="calc-btn" data-value="9" aria-label="9">9</button>
-            <button class="calc-btn operator" data-value="×" aria-label="Multiply">×</button>
+            <button class="calc-btn" data-value="7">7</button>
+            <button class="calc-btn" data-value="8">8</button>
+            <button class="calc-btn" data-value="9">9</button>
+            <button class="calc-btn operator" data-value="×">×</button>
             
-            <!-- Row 3 -->
-            <button class="calc-btn" data-value="4" aria-label="4">4</button>
-            <button class="calc-btn" data-value="5" aria-label="5">5</button>
-            <button class="calc-btn" data-value="6" aria-label="6">6</button>
-            <button class="calc-btn operator" data-value="-" aria-label="Subtract">−</button>
+            <button class="calc-btn" data-value="4">4</button>
+            <button class="calc-btn" data-value="5">5</button>
+            <button class="calc-btn" data-value="6">6</button>
+            <button class="calc-btn operator" data-value="-">−</button>
             
-            <!-- Row 4 -->
-            <button class="calc-btn" data-value="1" aria-label="1">1</button>
-            <button class="calc-btn" data-value="2" aria-label="2">2</button>
-            <button class="calc-btn" data-value="3" aria-label="3">3</button>
-            <button class="calc-btn operator" data-value="+" aria-label="Add">+</button>
+            <button class="calc-btn" data-value="1">1</button>
+            <button class="calc-btn" data-value="2">2</button>
+            <button class="calc-btn" data-value="3">3</button>
+            <button class="calc-btn operator" data-value="+">+</button>
             
-            <!-- Row 5 -->
-            <button class="calc-btn span-two" data-value="0" aria-label="0">0</button>
-            <button class="calc-btn" data-value="." aria-label="Decimal point">.</button>
-            <button class="calc-btn equals" data-value="=" aria-label="Calculate">=</button>
+            <button class="calc-btn span-two" data-value="0">0</button>
+            <button class="calc-btn" data-value=".">.</button>
+            <button class="calc-btn equals" data-value="=">=</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Lower Web Viewport Container -->
+    <!-- Viewport -->
     <div class="edgeless-viewport-container">
       <iframe 
         class="edgeless-viewport" 
         id="viewport" 
-        src="https://notion.so" 
+        src="https://google.com" 
         title="Workspace Viewport"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         loading="lazy"
+        allow="camera; microphone; fullscreen; geolocation"
       ></iframe>
     </div>
 
