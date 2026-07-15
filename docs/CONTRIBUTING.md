@@ -108,7 +108,6 @@ npm install
 Testing is currently manual. We're working on adding automated tests:
 
 1. Load the extension in developer mode
-
 2. Test all features:
 
 - Toggle sidebar
@@ -122,13 +121,9 @@ Testing is currently manual. We're working on adding automated tests:
 ## Release Process
 
 1. Update version in manifest.json
-
 2. Update CHANGELOG.md
-
 3. Create a GitHub release
-
 4. Package the extension
-
 5. Submit to Chrome Web Store
 
 ## Questions?
