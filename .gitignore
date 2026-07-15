@@ -1,1 +1,37 @@
+# macOS
 .DS_Store
+*.swp
+*.swo
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Build outputs
+dist/
+build/
+*.zip
+*.crx
+*.pem
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Chrome extension specific
+*.pem
+*.crx
+*.zip
