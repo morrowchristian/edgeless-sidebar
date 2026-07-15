@@ -326,4 +326,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show notes widget by default
   scratchpad.style.display = 'block';
   calculator.style.display = 'none';
+
+  // ============================================
+  // 9. GLOBAL STATE SYNC - KEEP DATA ACROSS TABS
+  // ============================================
+
+  // Listen for tab changes and keep sidebar state consistent
+  chrome.tabs.onActivated.addListener(function(activeInfo) {
+    // The sidebar itself stays open, but we might want to update content
+    chrome.storage.local.get(['edgelessNotes', 'edgelessPinnedApps'], function(result) {
+      // Update notes if needed
+      if (result.edgelessNotes) {
+        scratchpad.value = result.edgelessNotes;
+      }
+    });
+  });
 });

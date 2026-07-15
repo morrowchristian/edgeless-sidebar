@@ -1,10 +1,20 @@
-// background.js - Edgeless Sidebar Service Worker
+// background.js - Edgeless Sidebar Service Worker (Global Version)
 
 // ============================================
-// 1. EXTENSION INSTALLATION & SETUP
+// 1. STATE MANAGEMENT
 // ============================================
 
-chrome.runtime.onInstalled.addListener(() => {
+let sidebarState = {
+  isOpen: false,
+  alignment: 'right',
+  currentTabId: null
+};
+
+// ============================================
+// 2. EXTENSION INSTALLATION & SETUP
+// ============================================
+
+chrome.runtime.onInstalled.addListener(function() {
   console.log('Edgeless Sidebar installed successfully');
   
   // Initialize default settings
@@ -19,53 +29,159 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // ============================================
-// 2. TOOLBAR ACTION HANDLER
+// 3. TOOLBAR ACTION HANDLER - GLOBAL TOGGLE
 // ============================================
 
-chrome.action.onClicked.addListener((tab) => {
+chrome.action.onClicked.addListener(function(tab) {
   // Prevent injection on chrome:// and edge:// pages
   if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
     console.warn('Cannot inject sidebar into browser internal pages');
     return;
   }
   
-  // Try to send message first (sidebar might already be injected)
-  chrome.tabs.sendMessage(tab.id, { action: "toggle-sidebar" }).catch(() => {
-    // If not injected, inject the sidebar script
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['ui/sidebar.js']
-    }).then(() => {
-      // Send toggle message after injection
-      chrome.tabs.sendMessage(tab.id, { action: "toggle-sidebar" });
-    }).catch((error) => {
-      console.error('Failed to inject sidebar:', error);
-    });
-  });
+  // Toggle sidebar state
+  sidebarState.isOpen = !sidebarState.isOpen;
+  sidebarState.currentTabId = tab.id;
+  
+  if (sidebarState.isOpen) {
+    // Inject sidebar into ALL existing tabs
+    injectSidebarIntoAllTabs();
+  } else {
+    // Remove sidebar from ALL tabs
+    removeSidebarFromAllTabs();
+  }
 });
 
 // ============================================
-// 3. GLOBAL HOTKEY COMMANDS
+// 4. INJECT/REMOVE SIDEBAR IN ALL TABS
 // ============================================
 
-chrome.commands.onCommand.addListener((command) => {
-  if (command === "toggle-alignment") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs && tabs[0] && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "toggle-alignment" });
+function injectSidebarIntoAllTabs() {
+  chrome.tabs.query({}, function(tabs) {
+    tabs.forEach(function(tab) {
+      // Skip chrome:// and edge:// pages
+      if (tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('edge://')) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['ui/sidebar.js']
+        }).then(function() {
+          // Send open message after injection
+          chrome.tabs.sendMessage(tab.id, { 
+            action: "open-sidebar-global",
+            alignment: sidebarState.alignment
+          }).catch(function() {
+            // Ignore errors - tab might not be ready
+          });
+        }).catch(function(error) {
+          // Ignore errors for tabs that can't be injected
+        });
+      }
+    });
+  });
+}
+
+function removeSidebarFromAllTabs() {
+  chrome.tabs.query({}, function(tabs) {
+    tabs.forEach(function(tab) {
+      chrome.tabs.sendMessage(tab.id, { 
+        action: "close-sidebar-global"
+      }).catch(function() {
+        // Ignore errors - tab might not have sidebar
+      });
+    });
+  });
+}
+
+// ============================================
+// 5. HANDLE NEW TABS - AUTO-INJECT SIDEBAR
+// ============================================
+
+chrome.tabs.onCreated.addListener(function(tab) {
+  if (sidebarState.isOpen && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('edge://')) {
+    // Wait for tab to load before injecting
+    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, updatedTab) {
+      if (tabId === tab.id && changeInfo.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['ui/sidebar.js']
+        }).then(function() {
+          chrome.tabs.sendMessage(tab.id, { 
+            action: "open-sidebar-global",
+            alignment: sidebarState.alignment
+          }).catch(function() {
+            // Ignore errors
+          });
+        }).catch(function() {
+          // Ignore errors
+        });
       }
     });
   }
 });
 
 // ============================================
-// 4. MESSAGE HANDLING
+// 6. HANDLE TAB UPDATES - RE-INJECT IF NEEDED
 // ============================================
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if (changeInfo.status === 'complete' && sidebarState.isOpen) {
+    if (tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('edge://')) {
+      // Check if sidebar exists, if not inject it
+      chrome.tabs.sendMessage(tabId, { action: "check-sidebar" }).catch(function() {
+        chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['ui/sidebar.js']
+        }).then(function() {
+          chrome.tabs.sendMessage(tabId, { 
+            action: "open-sidebar-global",
+            alignment: sidebarState.alignment
+          }).catch(function() {
+            // Ignore errors
+          });
+        }).catch(function() {
+          // Ignore errors
+        });
+      });
+    }
+  }
+});
+
+// ============================================
+// 7. GLOBAL HOTKEY COMMANDS
+// ============================================
+
+chrome.commands.onCommand.addListener(function(command) {
+  if (command === "toggle-alignment") {
+    // Toggle alignment
+    sidebarState.alignment = sidebarState.alignment === 'right' ? 'left' : 'right';
+    chrome.storage.local.set({ alignmentMode: sidebarState.alignment });
+    
+    // Update all tabs with new alignment
+    if (sidebarState.isOpen) {
+      chrome.tabs.query({}, function(tabs) {
+        tabs.forEach(function(tab) {
+          chrome.tabs.sendMessage(tab.id, { 
+            action: "update-alignment-global",
+            alignment: sidebarState.alignment
+          }).catch(function() {
+            // Ignore errors
+          });
+        });
+      });
+    }
+  }
+});
+
+// ============================================
+// 8. MESSAGE HANDLING
+// ============================================
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   // Get active tab information
   if (request.action === "get-active-tab") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
       if (tabs && tabs[0]) {
         sendResponse({ 
           url: tabs[0].url, 
@@ -76,7 +192,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ url: null, title: null });
       }
     });
-    return true; // Keep channel open for async response
+    return true;
   }
   
   // Context awareness - update based on active tab
@@ -90,7 +206,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   // Get sidebar state
   if (request.action === "get-sidebar-state") {
-    chrome.storage.local.get(['alignmentMode', 'edgelessNotes', 'edgelessPinnedApps'], (result) => {
+    chrome.storage.local.get(['alignmentMode', 'edgelessNotes', 'edgelessPinnedApps'], function(result) {
       sendResponse(result);
     });
     return true;
@@ -98,21 +214,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   // Save sidebar state
   if (request.action === "save-sidebar-state") {
-    chrome.storage.local.set(request.data, () => {
+    chrome.storage.local.set(request.data, function() {
       sendResponse({ success: true });
     });
     return true;
   }
+  
+  // Check if sidebar is open globally
+  if (request.action === "is-sidebar-open") {
+    sendResponse({ isOpen: sidebarState.isOpen });
+    return true;
+  }
+  
+  return false;
 });
 
 // ============================================
-// 5. NETWORK PROXY - IFRAME DE-BLOCKER
+// 9. NETWORK PROXY - IFRAME DE-BLOCKER
 // ============================================
 
-const RULE_ID = 1;
-const IPAD_USER_AGENT = "Mozilla/5.0 (iPad; CPU OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1";
+var RULE_ID = 1;
+var IPAD_USER_AGENT = "Mozilla/5.0 (iPad; CPU OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1";
 
-// Clean up old rules and apply new ones
 function applyNetworkRules() {
   chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: [RULE_ID],
@@ -139,7 +262,7 @@ function applyNetworkRules() {
         }
       }
     ]
-  }, () => {
+  }, function() {
     if (chrome.runtime.lastError) {
       console.warn('Failed to apply network rules:', chrome.runtime.lastError);
     } else {
@@ -148,95 +271,30 @@ function applyNetworkRules() {
   });
 }
 
-// Apply rules on service worker startup
 applyNetworkRules();
 
 // ============================================
-// 6. TAB MANAGEMENT & CONTEXT AWARENESS
+// 10. TAB MANAGEMENT & CONTEXT AWARENESS
 // ============================================
 
-// Track active tab changes
-chrome.tabs.onActivated.addListener((activeInfo) => {
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+  chrome.tabs.get(activeInfo.tabId, function(tab) {
     if (tab && tab.url) {
-      // Store active tab info
       chrome.storage.local.set({
         activeTabUrl: tab.url,
         activeTabTitle: tab.title,
         activeTabId: tab.id
       });
       
-      // Notify any open sidebar panels
       chrome.runtime.sendMessage({
         action: "active-tab-changed",
         url: tab.url,
         title: tab.title
-      }).catch(() => {
-        // No listeners yet, that's okay
+      }).catch(function() {
+        // No listeners yet
       });
     }
   });
 });
 
-// Track tab updates (URL changes in same tab)
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.active && tab.url) {
-    chrome.storage.local.set({
-      activeTabUrl: tab.url,
-      activeTabTitle: tab.title
-    });
-    
-    chrome.runtime.sendMessage({
-      action: "active-tab-changed",
-      url: tab.url,
-      title: tab.title
-    }).catch(() => {
-      // No listeners yet, that's okay
-    });
-  }
-});
-
-// Track tab removal
-chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-  chrome.storage.local.get(['activeTabId'], (result) => {
-    if (result.activeTabId === tabId) {
-      chrome.storage.local.remove(['activeTabId', 'activeTabUrl', 'activeTabTitle']);
-    }
-  });
-});
-
-// ============================================
-// 7. WINDOW MANAGEMENT
-// ============================================
-
-// Handle window focus changes
-chrome.windows.onFocusChanged.addListener((windowId) => {
-  if (windowId !== chrome.windows.WINDOW_ID_NONE) {
-    chrome.tabs.query({ active: true, windowId: windowId }, (tabs) => {
-      if (tabs && tabs[0] && tabs[0].url) {
-        chrome.storage.local.set({
-          activeTabUrl: tabs[0].url,
-          activeTabTitle: tabs[0].title
-        });
-      }
-    });
-  }
-});
-
-// ============================================
-// 8. CLEANUP & ERROR HANDLING
-// ============================================
-
-// Handle service worker lifecycle
-self.addEventListener('install', (event) => {
-  console.log('Edgeless Sidebar service worker installed');
-});
-
-self.addEventListener('activate', (event) => {
-  console.log('Edgeless Sidebar service worker activated');
-});
-
-// Handle unhandled errors
-self.addEventListener('error', (event) => {
-  console.error('Service worker error:', event.error);
-});
+console.log('Edgeless Sidebar background service worker loaded (Global Mode)');
