@@ -2,86 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edgeless Sidebar Panels</title>
-  <link rel="stylesheet" href="sidebar.css">
+  <title>Edgeless Sidebar</title>
   <link rel="stylesheet" href="panel.css">
+  <link rel="stylesheet" href="sidebar.css">
 </head>
+
 <body>
-  
-  <!-- Main Panel -->
+
   <div class="edgeless-main-panel">
-    
-    <!-- Top App Tower (Horizontal) -->
+
+    <!-- Resize Handle -->
+    <div id="resizeHandle"></div>
+
+    <!-- App Tower -->
     <div class="edgeless-app-tower" id="appTower">
-      <button class="edgeless-pin-btn" id="pinBtn" title="Pin Active Tab">＋</button>
+      <button class="edgeless-pin-btn" id="pinBtn">＋</button>
     </div>
-    
+
     <!-- URL Bar -->
     <div class="edgeless-url-bar">
-      <button class="back-btn" id="backBtn" title="Go Back">◀</button>
-      <button class="reload-btn" id="reloadBtn" title="Reload">⟳</button>
-      <input 
-        type="text" 
-        id="urlBar" 
-        placeholder="Enter URL (e.g., google.com)" 
-        spellcheck="false"
-        autocomplete="off"
-      >
+      <button class="back-btn" id="backBtn">◀</button>
+      <button class="reload-btn" id="reloadBtn">⟳</button>
+      <input id="urlBar" placeholder="Enter URL…" autocomplete="off">
       <button id="goBtn">Go</button>
+      <button id="toggleModeBtn">⇆</button>
     </div>
-    
+
     <!-- Widget Deck -->
     <div class="edgeless-widget-deck">
       <div class="widget-tabs">
-        <button class="widget-tab active" data-widget="notes" title="Quick Notes">
-          📝 Notes
-        </button>
-        <button class="widget-tab" data-widget="calculator" title="Calculator">
-          🧮 Calculator
-        </button>
+        <button class="widget-tab active" data-widget="notes">📝 Notes</button>
+        <button class="widget-tab" data-widget="calculator">🧮 Calculator</button>
       </div>
-      
+
       <div class="widget-content">
-        <!-- Notes Widget -->
-        <textarea 
-          class="edgeless-scratchpad" 
-          id="scratchpad" 
-          placeholder="Edgeless Quick Notes... (Auto-saved)"
-          spellcheck="true"
-          aria-label="Quick notes scratchpad"
-        ></textarea>
-        
-        <!-- Calculator Widget -->
-        <div class="edgeless-calculator" id="calculator" style="display: none;">
-          <input 
-            type="text" 
-            id="calcDisplay" 
-            readonly 
-            aria-label="Calculator display"
-            value="0"
-          >
+        <textarea id="scratchpad" class="edgeless-scratchpad"></textarea>
+
+        <div id="calculator" class="edgeless-calculator" style="display:none;">
+          <input id="calcDisplay" readonly value="0">
           <div class="calc-grid">
             <button class="calc-btn clear" data-value="C">C</button>
             <button class="calc-btn" data-value="(">(</button>
             <button class="calc-btn" data-value=")">)</button>
-            <button class="calc-btn operator" data-value="÷">÷</button>
-            
+            <button class="calc-btn operator" data-value="/">÷</button>
+
             <button class="calc-btn" data-value="7">7</button>
             <button class="calc-btn" data-value="8">8</button>
             <button class="calc-btn" data-value="9">9</button>
-            <button class="calc-btn operator" data-value="×">×</button>
-            
+            <button class="calc-btn operator" data-value="*">×</button>
+
             <button class="calc-btn" data-value="4">4</button>
             <button class="calc-btn" data-value="5">5</button>
             <button class="calc-btn" data-value="6">6</button>
             <button class="calc-btn operator" data-value="-">−</button>
-            
+
             <button class="calc-btn" data-value="1">1</button>
             <button class="calc-btn" data-value="2">2</button>
             <button class="calc-btn" data-value="3">3</button>
             <button class="calc-btn operator" data-value="+">+</button>
-            
+
             <button class="calc-btn span-two" data-value="0">0</button>
             <button class="calc-btn" data-value=".">.</button>
             <button class="calc-btn equals" data-value="=">=</button>
@@ -92,14 +71,7 @@
 
     <!-- Viewport -->
     <div class="edgeless-viewport-container">
-      <iframe 
-        class="edgeless-viewport" 
-        id="viewport" 
-        src="https://google.com" 
-        title="Workspace Viewport"
-        loading="lazy"
-        allow="camera; microphone; fullscreen; geolocation"
-      ></iframe>
+      <iframe id="viewport" class="edgeless-viewport"></iframe>
     </div>
 
   </div>

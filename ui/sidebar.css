@@ -1,273 +1,62 @@
-/* ui/sidebar.css - Global sidebar styles */
+/* ui/sidebar.css — Styles for the injected sidebar iframe container */
 
-/* Master structural block pinned over the browser page viewport */
-#edgeless-root {
-    position: fixed;
-    top: 0;
-    height: 100vh;
-    background-color: #1a1a1e;
-    z-index: 2147483647;
-    display: flex;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+/* The injected iframe itself */
+#edgeless-host-frame {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 420px;
+  border: none;
+  background: #1a1a1e;
+  z-index: 2147483647;
+  transition: all 0.3s ease;
+  pointer-events: auto;
 }
 
-/* Container for the entire side panel */
-.edgeless-main-panel {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #1a1a1e;
-    box-sizing: border-box;
-    overflow: hidden;
+/* Docked mode shadows */
+#edgeless-host-frame.docked-right {
+  right: 0;
+  left: auto;
+  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
 }
 
-/* App tower - HORIZONTAL layout (changed from vertical) */
-.edgeless-app-tower {
-    display: flex;
-    flex-direction: row; /* Changed from column */
-    background-color: #111113;
-    padding: 8px 12px;
-    gap: 10px;
-    align-items: center;
-    border-bottom: 1px solid #2d2d34;
-    min-height: 50px;
-    height: 50px; /* Fixed height */
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-shrink: 0;
-    position: relative;
+#edgeless-host-frame.docked-left {
+  left: 0;
+  right: auto;
+  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
 }
 
-/* App icons - slightly smaller for horizontal layout */
-.edgeless-app-icon {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    border-radius: 6px;
-    cursor: pointer;
-    background-color: #25262b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease, background-color 0.15s ease;
-    position: relative;
-    border: none;
-    padding: 0;
-    flex-shrink: 0;
+/* Floating mode */
+#edgeless-host-frame.floating {
+  top: 50px;
+  height: calc(100vh - 100px);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
-.edgeless-app-icon:hover {
-    transform: scale(1.1);
-    background-color: #2c2e33;
+/* Floating alignment */
+#edgeless-host-frame.floating-right {
+  right: 20px;
+  left: auto;
 }
 
-/* Delete button for app icons */
-.edgeless-app-icon .delete-btn {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #dc3545;
-    color: white;
-    border: none;
-    font-size: 10px;
-    line-height: 16px;
-    text-align: center;
-    cursor: pointer;
-    display: none;
-    padding: 0;
-    z-index: 10;
+#edgeless-host-frame.floating-left {
+  left: 20px;
+  right: auto;
 }
 
-.edgeless-app-icon:hover .delete-btn {
-    display: block;
+/* Smooth width animation */
+#edgeless-host-frame.resizing {
+  transition: none;
 }
 
-.edgeless-app-icon .delete-btn:hover {
-    background: #c82333;
+/* Prevent page horizontal scroll when docked */
+body.edgeless-docked-right {
+  margin-right: var(--edgeless-width, 420px);
+  overflow-x: hidden;
 }
 
-/* Fallback text icon styling */
-.edgeless-app-icon span {
-    color: #e8eaed;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-family: -apple-system, sans-serif;
-}
-
-/* Image element inside the wrapper */
-.edgeless-app-img {
-    width: 18px;
-    height: 18px;
-    pointer-events: none;
-}
-
-/* Pin button - smaller for horizontal layout */
-.edgeless-pin-btn {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    border-radius: 6px;
-    border: none;
-    background-color: #2b8a43;
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.15s ease;
-    flex-shrink: 0;
-}
-
-.edgeless-pin-btn:hover {
-    background-color: #34a853;
-}
-
-.edgeless-pin-btn.clear-all {
-    background-color: #dc3545;
-}
-
-.edgeless-pin-btn.clear-all:hover {
-    background-color: #c82333;
-}
-
-/* The core iframe screen containing the websites */
-.edgeless-viewport {
-    flex-grow: 1;
-    height: 100%;
-    border: none;
-    background-color: #ffffff;
-    width: 100%;
-}
-
-/* Widget deck - slightly taller */
-.edgeless-widget-deck {
-    width: 100%;
-    height: 180px;
-    min-height: 180px;
-    background-color: #202124;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid #2d2d34;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-/* Scratchpad styling */
-.edgeless-scratchpad {
-    width: 100%;
-    height: 100%;
-    background: #111113;
-    border: 1px solid #3c4043;
-    border-radius: 6px;
-    color: #e8eaed;
-    padding: 8px;
-    resize: none;
-    box-sizing: border-box;
-    font-size: 13px;
-    font-family: inherit;
-    white-space: pre-wrap;
-    word-break: break-all;
-    line-height: 1.5;
-}
-
-.edgeless-scratchpad:focus {
-    outline: 1px solid #34a853;
-}
-
-.edgeless-scratchpad::placeholder {
-    color: #5a5f66;
-}
-
-/* Viewport container - fills remaining space */
-.edgeless-viewport-container {
-    flex-grow: 1;
-    position: relative;
-    width: 100%;
-    background: #ffffff;
-    overflow: hidden;
-}
-
-/* Scrollbar styling for horizontal app tower */
-.edgeless-app-tower::-webkit-scrollbar {
-    height: 3px;
-}
-
-.edgeless-app-tower::-webkit-scrollbar-track {
-    background: #111113;
-}
-
-.edgeless-app-tower::-webkit-scrollbar-thumb {
-    background: #3c4043;
-    border-radius: 3px;
-}
-
-.edgeless-app-tower::-webkit-scrollbar-thumb:hover {
-    background: #4a4d52;
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-    .edgeless-app-icon {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        min-height: 28px;
-    }
-    
-    .edgeless-pin-btn {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        font-size: 14px;
-    }
-    
-    .edgeless-app-tower {
-        min-height: 42px;
-        height: 42px;
-        padding: 6px 10px;
-        gap: 8px;
-    }
-    
-    .edgeless-widget-deck {
-        height: 150px;
-        min-height: 150px;
-    }
-}
-
-@media (max-width: 360px) {
-    .edgeless-app-icon {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        min-height: 24px;
-    }
-    
-    .edgeless-app-icon span {
-        font-size: 10px;
-    }
-    
-    .edgeless-pin-btn {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        font-size: 12px;
-    }
-    
-    .edgeless-app-tower {
-        min-height: 36px;
-        height: 36px;
-        padding: 4px 8px;
-        gap: 6px;
-    }
+body.edgeless-docked-left {
+  margin-left: var(--edgeless-width, 420px);
+  overflow-x: hidden;
 }
